@@ -82,14 +82,39 @@ public class WeatherController extends AppCompatActivity {
         super.onResume();
         Log.d("Clima", "onResume() called");
 
-        Intent myIntent=getIntent();
+        Intent myIntent = getIntent();
+        String city = myIntent.getStringExtra("City");
 
-
-        Log.d("Clima", "Getting weather for current location");
-        getWeatherForCurrentLocation();
+        if (city != null) {
+            getWeatherForNewCity(city);
+        } else {
+            Log.d("Clima", "Getting weather for current location");
+            getWeatherForCurrentLocation();
+        }
     }
 
     // TODO: Add getWeatherForNewCity(String city) here:
+    private void getWeatherForNewCity(String city) {
+        RequestParams params = new RequestParams();
+        params.put("q", city);
+        params.put("appid", APP_ID);
+        letsDoSomeNetworking(params);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("Clima", "onRequestPermissionsResult() Permission Granted");
+            } else {
+                Log.d("Clima", "Permission denied");
+            }
+        }
+    }
+
+    // TODO: Add getWeatherForCurrentLocation() here:
     private void getWeatherForCurrentLocation() {
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -140,22 +165,6 @@ public class WeatherController extends AppCompatActivity {
         mLocationManager.requestLocationUpdates(LOCATION_PROVIDER, MIN_TIME, MIN_DISTANCE, mLocationListner);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("Clima", "onRequestPermissionsResult() Permission Granted");
-            } else {
-                Log.d("Clima", "Permission denied");
-            }
-        }
-    }
-
-    // TODO: Add getWeatherForCurrentLocation() here:
-
-
     // TODO: Add letsDoSomeNetworking(RequestParams params) here:
     public void letsDoSomeNetworking(RequestParams params) {
 
@@ -193,4 +202,11 @@ public class WeatherController extends AppCompatActivity {
     // TODO: Add onPause() here:
 
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mLocationManager != null) mLocationManager.removeUpdates(mLocationListner);
+
+    }
 }
